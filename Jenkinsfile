@@ -37,7 +37,7 @@ pipeline {
                     $class: 'GitSCM',
                     branches: [[name: "*/${params.BRANCH_NAME}"]],
                     userRemoteConfigs: [[
-                        url: 'https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git',
+                        url: 'https://github.com/Samudini-Chamodya/java-getting-started.git',
                         credentialsId: 'github-credentials' // We'll set this up later
                     ]]
                 ])
