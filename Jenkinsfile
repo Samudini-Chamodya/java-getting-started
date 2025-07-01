@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        MAVEN_HOME = tool 'Maven-3.9.0' 
+        MAVEN_HOME = tool 'Maven-3.9.0'
     }
 
     stages {
@@ -23,7 +23,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh "${MAVEN_HOME}/bin/mvn clean install"
+                bat "\"%MAVEN_HOME%\\bin\\mvn\" clean install"
             }
         }
 
@@ -31,7 +31,7 @@ pipeline {
             parallel {
                 stage('Unit Tests') {
                     steps {
-                        sh "${MAVEN_HOME}/bin/mvn test"
+                        bat "\"%MAVEN_HOME%\\bin\\mvn\" test"
                     }
                 }
                 stage('Integration Tests') {
@@ -39,7 +39,7 @@ pipeline {
                         expression { return params.RUN_INTEGRATION_TESTS }
                     }
                     steps {
-                        sh "${MAVEN_HOME}/bin/mvn verify -Pintegration"
+                        bat "\"%MAVEN_HOME%\\bin\\mvn\" verify -Pintegration"
                     }
                 }
             }
@@ -54,8 +54,8 @@ pipeline {
             }
             steps {
                 echo "Deploying to staging environment..."
-              
-                 script {
+
+                script {
                     echo "Deployment simulation for branch: ${params.BRANCH_NAME}"
                     echo "Artifact: target/*.jar"
                     
