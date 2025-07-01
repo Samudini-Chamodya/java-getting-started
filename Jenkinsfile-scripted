@@ -24,7 +24,7 @@ node {
 
             stage('Build') {
                 // Change according to your project type
-                sh 'mvn clean install' // or 'npm ci'
+                bat 'mvn clean install' // or 'npm ci'
             }
 
             stage('Run Tests in Parallel') {
@@ -33,7 +33,7 @@ node {
                 testStages['Unit Tests'] = {
                     stage('Unit Tests') {
                         echo 'Running Unit Tests...'
-                        sh 'echo Running unit tests...' // replace with actual test command
+                        bat 'echo Running unit tests...' // replace with actual test command
                     }
                 }
 
@@ -41,7 +41,7 @@ node {
                     testStages['Integration Tests'] = {
                         stage('Integration Tests') {
                             echo 'Running Integration Tests...'
-                            sh 'echo Running integration tests...' // replace with actual command
+                            bat 'echo Running integration tests...' // replace with actual command
                         }
                     }
                 }
@@ -52,7 +52,7 @@ node {
             stage('Deploy to Staging') {
                 if (params.BRANCH_NAME == 'main' || params.BRANCH_NAME.startsWith('release/')) {
                     echo "Deploying to staging..."
-                    sh 'echo Deploying app to staging...' // replace with real deploy script
+                    bat 'echo Deploying app to staging...' // replace with real deploy script
                 } else {
                     echo "Skipping deployment (not on main or release/* branch)"
                 }
