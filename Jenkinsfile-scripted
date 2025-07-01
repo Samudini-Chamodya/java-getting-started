@@ -1,0 +1,72 @@
+// Jenkinsfile-scripted
+
+properties([
+    parameters([
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Branch to build and test'),
+        booleanParam(name: 'RUN_INTEGRATION_TESTS', defaultValue: true, description: 'Run integration tests')
+    ])
+])
+
+node {
+    timestamps {
+        stage('Initialize') {
+            echo "Running on branch: ${params.BRANCH_NAME}"
+            echo "Integration tests enabled: ${params.RUN_INTEGRATION_TESTS}"
+        }
+
+        try {
+            stage('Checkout Code') {
+                checkout([$class: 'GitSCM',
+                    branches: [[name: "*/${params.BRANCH_NAME}"]],
+                    userRemoteConfigs: [[url: 'https://github.com/your-org/your-repo.git']]
+                ])
+            }
+
+            stage('Build') {
+                // Change according to your project type
+                sh 'mvn clean install' // or 'npm ci'
+            }
+
+            stage('Run Tests in Parallel') {
+                def testStages = [:]
+
+                testStages['Unit Tests'] = {
+                    stage('Unit Tests') {
+                        echo 'Running Unit Tests...'
+                        sh 'echo Running unit tests...' // replace with actual test command
+                    }
+                }
+
+                if (params.RUN_INTEGRATION_TESTS) {
+                    testStages['Integration Tests'] = {
+                        stage('Integration Tests') {
+                            echo 'Running Integration Tests...'
+                            sh 'echo Running integration tests...' // replace with actual command
+                        }
+                    }
+                }
+
+                parallel testStages
+            }
+
+            stage('Deploy to Staging') {
+                if (params.BRANCH_NAME == 'main' || params.BRANCH_NAME.startsWith('release/')) {
+                    echo "Deploying to staging..."
+                    sh 'echo Deploying app to staging...' // replace with real deploy script
+                } else {
+                    echo "Skipping deployment (not on main or release/* branch)"
+                }
+            }
+
+            echo '✅ Pipeline execution successful!'
+        } catch (err) {
+            echo "❌ Pipeline failed: ${err}"
+            currentBuild.result = 'FAILURE'
+        } finally {
+            stage('Cleanup') {
+                echo 'Cleaning up workspace...'
+                cleanWs()
+            }
+        }
+    }
+}
