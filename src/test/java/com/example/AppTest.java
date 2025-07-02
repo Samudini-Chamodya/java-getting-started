@@ -7,6 +7,7 @@ public class AppTest {
 
     @Test
     void myTest() {
-        assertEquals(2, 1 + 1);
+        assertEquals(40, 20 + 20git add .
+        );
     }
 }
