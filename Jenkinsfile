@@ -25,7 +25,7 @@ pipeline {
     environment {
         MAVEN_OPTS = '-Dmaven.test.failure.ignore=true'
         JAVA_HOME = tool('JDK-17')
-        PATH = "${JAVA_HOME}/bin:${env.PATH}"
+        PATH = "${JAVA_HOME}/bin;${env.PATH}"
     }
     
     stages {
@@ -44,8 +44,9 @@ pipeline {
                 
                 // Display current branch and commit info
                 script {
-                    def gitCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-                    def gitBranch = sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
+                    // Use bat instead of sh for Windows
+                    def gitCommit = bat(returnStdout: true, script: 'git rev-parse HEAD').trim()
+                    def gitBranch = bat(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
                     echo "Building commit ${gitCommit} on branch ${gitBranch}"
                 }
             }
@@ -72,12 +73,18 @@ pipeline {
                     post {
                         always {
                             // Publish unit test results
-                            publishTestResults testResultsPattern: 'target/surefire-reports/*.xml'
-                            
-                            // Archive test reports
-                            archiveArtifacts artifacts: 'target/surefire-reports/*.xml', 
-                                           fingerprint: true, 
-                                           allowEmptyArchive: true
+                            script {
+                                if (fileExists('target/surefire-reports/*.xml')) {
+                                    publishTestResults testResultsPattern: 'target/surefire-reports/*.xml'
+                                    
+                                    // Archive test reports
+                                    archiveArtifacts artifacts: 'target/surefire-reports/*.xml', 
+                                                   fingerprint: true, 
+                                                   allowEmptyArchive: true
+                                } else {
+                                    echo 'No test results found'
+                                }
+                            }
                         }
                     }
                 }
@@ -94,12 +101,18 @@ pipeline {
                     post {
                         always {
                             // Publish integration test results if they exist
-                            publishTestResults testResultsPattern: 'target/failsafe-reports/*.xml'
-                            
-                            // Archive integration test reports
-                            archiveArtifacts artifacts: 'target/failsafe-reports/*.xml', 
-                                           fingerprint: true, 
-                                           allowEmptyArchive: true
+                            script {
+                                if (fileExists('target/failsafe-reports/*.xml')) {
+                                    publishTestResults testResultsPattern: 'target/failsafe-reports/*.xml'
+                                    
+                                    // Archive integration test reports
+                                    archiveArtifacts artifacts: 'target/failsafe-reports/*.xml', 
+                                                   fingerprint: true, 
+                                                   allowEmptyArchive: true
+                                } else {
+                                    echo 'No integration test results found'
+                                }
+                            }
                         }
                     }
                 }
@@ -113,9 +126,15 @@ pipeline {
                 bat 'mvn package -DskipTests=true'
                 
                 // Archive the built artifacts
-                archiveArtifacts artifacts: 'target/*.jar', 
-                               fingerprint: true, 
-                               allowEmptyArchive: true
+                script {
+                    if (fileExists('target/*.jar')) {
+                        archiveArtifacts artifacts: 'target/*.jar', 
+                                       fingerprint: true, 
+                                       allowEmptyArchive: true
+                    } else {
+                        echo 'No JAR files found to archive'
+                    }
+                }
             }
         }
         
